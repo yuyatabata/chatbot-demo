@@ -2,8 +2,7 @@ import React, {useState, useEffect, useCallback} from 'react';
 import './assets/styles/style.css';
 import {AnswersList, Chats} from "./components";
 import FormDialog from './components/Forms/FormDialog';
-import {db} from './firebase/index'
-
+import {db} from './firebase/index';
 
 const App = () => {
   const [answers, setAnswers] = useState([]);
@@ -13,29 +12,18 @@ const App = () => {
   const [open, setOpen] = useState(false);
 
 
-    this.selectAnswer = this.selectAnswer.bind(this)
-    this.handleClickOpen = this.handleClickOpen.bind(this)
-    this.handleClose = this.handleClose.bind(this)
-
-
   const displayNextQuestion = (nextQuestionId, nextDataset) => {
     addChats({
       text: nextDataset.question,
       type: 'question'
     })
 
-    this.setState( {
-      answers: this.state.dataset[nextQuestionId].answers,
-      chats: chats,
-      currentId: nextQuestionId
-    })
+    setAnswers(nextDataset.answers)
+    setCurrentId(nextQuestionId)
   }
 
   const selectAnswer = (selectedAnswer, nextQuestionId) => {
     switch(true) {
-      case (nextQuestionId === 'init'):
-        setTimeout(() => displayNextQuestion(nextQuestionId), 500);
-        break;
       case (nextQuestionId === 'contact'):
         handleClickOpen()
         break;
@@ -51,7 +39,7 @@ const App = () => {
           type: 'answer'
         })
     
-        setTimeout(() => displayNextQuestion(nextQuestionId), 1000);
+        setTimeout(() => displayNextQuestion(nextQuestionId, dataset[nextQuestionId]), 1000);
         break;
     }
   }
@@ -70,35 +58,29 @@ const App = () => {
     setOpen(false)
   }, [setOpen]);
 
-  const initDataset = (dataset) => {
-    this.setState({dataset: dataset})
-  }
-
-  componentDidMount() {
+  useEffect( () => {
     (async() => {
-      const dataset = this.state.dataset
+      const initDataset = {};
 
       await db.collection('questions').get().then(snapshots => {
         snapshots.forEach(doc => {
           const id = doc.id
           const data = doc.data()
-          dataset[id] = data
+          initDataset[id] = data
         })
       })
 
-      this.initDataset(dataset)
-      const initAnswer = "";
-      this.selectAnswer(initAnswer, this.state.currentId)
-
+      setDataset(initDataset)
+      displayNextQuestion(currentId, initDataset[currentId])
     })()
-  }
+  }, [])
 
-  componentDidUpdate() {
+  useEffect( () => {
     const scrollArea = document.getElementById('scroll-area')
     if (scrollArea) {
       scrollArea.scrollTop = scrollArea.scrollHeight;
     }
-  }
+  })
 
   return (
     <section className="c-section">
@@ -111,3 +93,4 @@ const App = () => {
   );
 }
 
+export default App
